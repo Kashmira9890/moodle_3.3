@@ -184,12 +184,6 @@ foreach ($cms as $cm) {
 
 echo html_writer::table($table);
 
-$backuppath = $CFG->dataroot."/temp/filestorage/filebackup";	// create temporary storage location for merged pdf file
-if (!file_exists($backuppath)) {
-	$mkdir = mkdir($backuppath, 0777, true);
-}
-$backuppath .= "/";
-
 $mform = new performmerge_form(null);
 $formdata = array('courseid' => $id);
 $mform->set_data($formdata);
