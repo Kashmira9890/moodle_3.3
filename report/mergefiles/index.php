@@ -341,35 +341,7 @@ if ($data = $mform->get_data()) {
 
 		echo "<br> Merged PDF Document | "."<a $class $extra href=\"".$stampedfileurl."\">".$icon."Available here!</a>";
 
-		$mergedpdf_bkup = $backuppath.$stampedfilename;
-		$stampedfile->copy_content_to($mergedpdf_bkup);
-
 	}
 }
-//----------------------------------------------------------------------------
-// Source from mod/resource/view.php....used for getting contenthash of the file
-
-//$context = context_module::instance($cm->id);
-$files = $fs->get_area_files($context->id, 'mod_resource', 'content', 0, 'sortorder DESC, id ASC', false); // TODO: this is not very efficient!!
-if (count($files) < 1) {
-	//resource_print_filenotfound($resource, $cm, $course);
-	continue;
-} else {
-	$file = reset($files);
-	unset($files);
-}
-print_object($files);
-
-// end of source from mod/resource/view.php
-//---------------------------------------------------------------------------
-
-$files1 = scandir($backuppath);
-//print_r($files1);
-
-$table1 = new html_table();
-$table1->attributes['class'] = 'generaltable mod_index';
-
-$table1->head  = array ("Previously merged files");
-$table1->align = array ('center');
 
 echo $OUTPUT->footer();
