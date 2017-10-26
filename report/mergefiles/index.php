@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/*
- * @package    report
- * @subpackage mergefiles
- * @author
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL
- * @copyright  (C) 1999 onwards Martin Dougiamas  http://dougiamas.com
+/**
+ * Merges pdf documents in a course.
  *
- * The user selects if he wants to publish the course on Moodle.org hub or
- * on a specific hub. The site must be registered on a hub to be able to
- * publish a course on it.
+ * This file generates a merged pdf document of all the pdfs found in a particular course.
+ *
+ * @package    report_mergefiles
+ * @copyright  2017 IITBombay
+ * @author	   Kashmira Nagwekar
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require('../../config.php');
-require_once 'performmerge_form.php';
-if(empty($id)){
+require_once($CFG->dirroot . '/report/mergefiles/performmerge_form.php');
+
+if (empty($id)) {
 	$id = required_param('courseid', PARAM_INT);
 }
-$course = $DB->get_record('course', array('id'=>$id), '*', MUST_EXIST);
+$course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
 
 require_login($course);
 $context = context_course::instance($course->id);
@@ -55,19 +55,19 @@ $PAGE->set_title($course->shortname.' | '.$pluginname);
 $PAGE->set_heading($course->fullname.' | '.$pluginname);
 $PAGE->navbar->add($pluginname);
 
-//require_capability('report/mergefiles:view', $context);
+// require_capability('report/mergefiles:view', $context);
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 echo $note;
 echo "<br><br>";
 
-// Source code from course/resources.php....used for getting all the pdf files in the course in order to merge them
+// Source code from course/resources.php...used for getting all the pdf files in the course in order to merge them.
 
-// Get list of all resource-like modules
-$allmodules = $DB->get_records('modules', array('visible'=>1));
+// Get list of all resource-like modules.
+$allmodules = $DB->get_records('modules', array('visible' => 1));
 $availableresources = array();
-foreach ($allmodules as $key=>$module) {
+foreach ($allmodules as $key => $module) {
 	$modname = $module->name;
 	$libfile = "$CFG->dirroot/mod/$modname/lib.php";
 	if (!file_exists($libfile)) {
@@ -78,16 +78,16 @@ foreach ($allmodules as $key=>$module) {
 		continue;
 	}
 
-	$availableresources[] = $modname;	// List of all available resource types
+	$availableresources[] = $modname;	// List of all available resource types.
 }
 
-$modinfo = get_fast_modinfo($course);	// Fetching all course data
+$modinfo = get_fast_modinfo($course);	// Fetch all course data.
 $usesections = course_format_uses_sections($course->format);
 
 $cms = array();
 $resources = array();
 
-foreach ($modinfo->cms as $cm) {	// Fetching all modules in the course, like forum, quiz, resource etc.
+foreach ($modinfo->cms as $cm) {	// Fetch all modules in the course, like forum, quiz, resource etc.
 	if (!in_array($cm->modname, $availableresources)) {
 		continue;
 	}
@@ -95,16 +95,16 @@ foreach ($modinfo->cms as $cm) {	// Fetching all modules in the course, like for
 		continue;
 	}
 	if (!$cm->has_view()) {
-		// Exclude label and similar
+		// Exclude label and similar.
 		continue;
 	}
 	$cms[$cm->id] = $cm;
-	$resources[$cm->modname][] = $cm->instance;		// Fetch only modules having modname -'resource'..
-													//..pdf files have modname 'resource'
+	$resources[$cm->modname][] = $cm->instance;		// Fetch only modules having modname -'resource'...
+													// ...pdf files have modname 'resource'.
 }
 
-// Preload instances
-foreach ($resources as $modname=>$instances) {		// Getting data from mdl_resource table..id, name of the pdf file..
+// Preload instances.
+foreach ($resources as $modname => $instances) {		// Get data from mdl_resource table, namely, id, name of the pdf file etc.
 	$resources[$modname] = $DB->get_records_list($modname, 'id', $instances, 'id', 'id,name');
 }
 
@@ -140,7 +140,7 @@ foreach ($cms as $cm) {
 				$printsection = get_section_name($course, $cm->sectionnum);
 			}
 			if ($currentsection !== '') {
-				//$table->data[] = 'hr';
+				// $table->data[] = 'hr';
 			}
 			$currentsection = $cm->sectionnum;
 		}
@@ -148,25 +148,30 @@ foreach ($cms as $cm) {
 
 	$extra = empty($cm->extra) ? '' : $cm->extra;
 	$icon = '<img src="'.$cm->get_icon_url().'" class="activityicon" alt="'.$cm->get_module_type_name().'" /> ';
-	$class = $cm->visible ? '' : 'class="dimmed"'; // hidden modules are dimmed
+	$class = $cm->visible ? '' : 'class="dimmed"'; // Hidden modules are dimmed.
 
-	//----------------------------------------------------------------------------
-	// Source from mod/resource/view.php....used for getting contenthash of the file
+	// ----------------------------------------------------------------------------
+	// Source from mod/resource/view.php...used for getting contenthash of the file.
 
 	$context = context_module::instance($cm->id);
-	$files = $fs->get_area_files($context->id, 'mod_resource', 'content', 0, 'sortorder DESC, id ASC', false); // TODO: this is not very efficient!!
+	$files = $fs->get_area_files($context->id, 'mod_resource', 'content', 0, 'sortorder DESC, id ASC', false);
 	if (count($files) < 1) {
-		//resource_print_filenotfound($resource, $cm, $course);
+		// resource_print_filenotfound($resource, $cm, $course);
 		continue;
 	} else {
 		$file = reset($files);
 		unset($files);
 	}
 
-	// end of source from mod/resource/view.php
-	//---------------------------------------------------------------------------
+	// End of source from mod/resource/view.php.
+	// ---------------------------------------------------------------------------
 
-	$url = moodle_url::make_pluginfile_url($file->get_contextid(), $file->get_component(), $file->get_filearea(), $file->get_itemid(), $file->get_filepath(), $file->get_filename());
+	$url = moodle_url::make_pluginfile_url($file->get_contextid(),
+										$file->get_component(),
+										$file->get_filearea(),
+										$file->get_itemid(),
+										$file->get_filepath(),
+										$file->get_filename());
 	$contenthash = $file->get_contenthash();
 
 	static $p = 0;
@@ -192,27 +197,27 @@ $mform->display();
 if ($data = $mform->get_data()) {
 	if (!empty($data->save)) {
 
-		// Code for merging all the course pdfs --------------------------------------------------------------------
-		// merge all course pdf files and store the merged document at a temporary location
+		// Code for merging all the course pdfs. ---------------------------------------------------
+		// Merge all course pdf files and store the merged document at a temporary location.
 
-		$path = $CFG->dataroot."/temp/filestorage";	// create temporary storage location for merged pdf file
+		$path = $CFG->dataroot."/temp/filestorage";	// Create temporary storage location for merged pdf file.
 		if (!file_exists($path)) {
 			$mkdir = mkdir($path, 0777, true);
 		}
 		$datadir = $path."/";
 
-		$mergedpdf = $datadir.uniqid('mergedfile_').".pdf";	// path to the merged pdf document with unique filename
+		$mergedpdf = $datadir.uniqid('mergedfile_').".pdf";	// Path to the merged pdf document with unique filename.
 
-		// merge all the pdf files in the course using pdftk
+		// Merge all the pdf files in the course using pdftk.
 		$cmd = "pdftk ";
-		// add each pdf file to the command
-		foreach($arr as $file) {
+		// Add each pdf file to the command.
+		foreach ($arr as $file) {
 			$cmd .= $file." ";
 		}
 		$cmd .= " output $mergedpdf";
 		$result = shell_exec($cmd);
 
-		// copy the merged pdf document from temp loc to moodledata/filedir/..
+		// Copy the merged pdf document from temp loc to 'moodledata/filedir/...'.
 		$mergedfileinfo = array(
 				'contextid' => $context->id, 		// ID of context
 				'component' => 'mod_resource',    	// usually = table name
@@ -239,12 +244,12 @@ if ($data = $mform->get_data()) {
 				$mergedfile -> get_filepath(),
 				$mergedfile -> get_filename());
 
-		// create a blank numbered pdf document --------------------------------------------------------------------
+		// Create a blank numbered pdf document. ----------------------------------------------------
 
-		// find no. of pages in the merged pdf document
+		// Find no. of pages in the merged pdf document.
 		$noofpages = shell_exec("pdftk $mergedpdf dump_data | grep NumberOfPages | awk '{print $2}'");
 
-		// latex script for creating blank numbered pdf document
+		// Latex script for creating blank numbered pdf document.
 		$startpage = 1;
 		$texscript = '
 	 		\documentclass[12pt,a4paper]{article}
@@ -289,21 +294,21 @@ if ($data = $mform->get_data()) {
 
 		$latexfile1->copy_content_to($latexfile);
 
-		// execute pdflatex with parameter
-		// store the output blank numbered pdf document and all the intermediate files at the temp loc
+		// Execute pdflatex with parameter.
+		// Store the output blank numbered pdf document and all the intermediate files at the temp loc.
 		$result1 = shell_exec('pdflatex -aux-directory='.$datadir.' -output-directory='.$datadir.' '.$latexfile.' ');
 
 		// var_dump( $pdflatex );
-		// test for success
+		// Test for success.
 		if (!file_exists($latexfile)){
 			print_r( file_get_contents($latexfilename.".log") );
 		} else {
-			//echo "\nPDF created!\n";
+			// echo "\nPDF created!\n";
 		}
 
-		// merge the blank numbered pdf document with the merged pdf document (containing all course pdfs)
+		// Merge the blank numbered pdf document with the merged pdf document (containing all course pdfs).
 
-		$stampedpdf = $datadir.uniqid('stampedfile_').".pdf";	// unique filename (with entire path to the file) for the merged and stamped pdf document
+		$stampedpdf = $datadir.uniqid('stampedfile_').".pdf";	// Unique filename (with entire path to the file) for the merged and stamped pdf document.
 		$result2 = shell_exec("pdftk $mergedpdf multistamp ".$latexfilename.".pdf output $stampedpdf");
 		$stampedfilename = uniqid('stampedfile_').'.pdf';
 
@@ -334,7 +339,6 @@ if ($data = $mform->get_data()) {
 				$stampedfile -> get_filename());
 
 		echo "<br> Merged PDF Document | "."<a $class $extra href=\"".$stampedfileurl."\">".$icon."Available here!</a>";
-
 	}
 }
 

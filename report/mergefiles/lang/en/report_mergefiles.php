@@ -15,10 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'report/mergefiles'
+ * Strings for component 'report_mergefiles', language 'en'
  *
- * @package    report/mergefiles
- * @copyright
+ * @package    report_mergefiles
+ * @copyright  2017 IITBombay
+ * @author     Kashmira Nagwekar
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

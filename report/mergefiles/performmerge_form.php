@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,13 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-if (!defined('MOODLE_INTERNAL')) {
-	die('Direct access to this script is forbidden.');    ///  It must be included from a Moodle page
-}
+defined('MOODLE_INTERNAL') || die();
 
-require_once $CFG->libdir.'/formslib.php';
+require_once($CFG->libdir.'/formslib.php');
 
+/**
+ * Perform merge form.
+ *
+ * @package   report_mergefiles
+ * @copyright 2017 IITBombay
+ * @author    Kashmira Nagwekar
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class performmerge_form extends moodleform {
+
+	/**
+	 * Form definition method.
+	 */
 	function definition() {
 		global $CFG;
 		$mform = $this->_form;

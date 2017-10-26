@@ -56,7 +56,6 @@ class quiz_first_or_all_responses_table extends quiz_last_responses_table {
         }
     }
 
-
     protected function load_extra_data() {
         if (count($this->rawdata) === 0) {
             return;
@@ -68,23 +67,33 @@ class quiz_first_or_all_responses_table extends quiz_last_responses_table {
         // Insert an extra field in attempt data and extra rows where necessary.
         $newrawdata = array();
         foreach ($this->rawdata as $attempt) {
-            $maxtriesinanyslot = 1;
-            foreach ($this->questionusagesbyactivity[$attempt->usageid]->get_slots() as $slot) {
-                $tries = $this->get_no_of_tries($attempt, $slot);
-                $maxtriesinanyslot = max($maxtriesinanyslot, $tries);
-            }
-            for ($try = 1; $try <= $maxtriesinanyslot; $try++) {
+            // Check whether the user has attempted the quiz or not.
+            if (empty($attempt->usageid)) {
+                // Prepare table row data for users who have not attempted the quiz.
                 $newtablerow = clone($attempt);
-                $newtablerow->lasttryforallparts = ($try == $maxtriesinanyslot);
-                if ($try !== $maxtriesinanyslot) {
-                    $newtablerow->state = quiz_attempt::IN_PROGRESS;
-                }
-                $newtablerow->try = $try;
+                $newtablerow->lasttryforallparts = false;
+                $newtablerow->try = 0;
                 $newrawdata[] = $newtablerow;
-                if ($this->options->whichtries == question_attempt::FIRST_TRY) {
-                    break;
-                }
-            }
+                continue;
+        	}
+        	// Prepare table row/(rows) data for users who have attempted the quiz.
+    		$maxtriesinanyslot = 1;
+    		foreach ($this->questionusagesbyactivity[$attempt->usageid]->get_slots() as $slot) {
+    		    $tries = $this->get_no_of_tries($attempt, $slot);
+    		    $maxtriesinanyslot = max($maxtriesinanyslot, $tries);
+    		}
+    		for ($try = 1; $try <= $maxtriesinanyslot; $try++) {
+    		    $newtablerow = clone($attempt);
+    		    $newtablerow->lasttryforallparts = ($try == $maxtriesinanyslot);
+    		    if ($try !== $maxtriesinanyslot) {
+    		        $newtablerow->state = quiz_attempt::IN_PROGRESS;
+    		    }
+    		    $newtablerow->try = $try;
+    		    $newrawdata[] = $newtablerow;
+    		    if ($this->options->whichtries == question_attempt::FIRST_TRY) {
+    		        break;
+    		    }
+    		}
         }
         $this->rawdata = $newrawdata;
     }
@@ -216,7 +225,7 @@ class quiz_first_or_all_responses_table extends quiz_last_responses_table {
     }
 
     public function col_checkbox($tablerow) {
-        if ($tablerow->try != 1) {
+    	if ($tablerow->try != 1) {
             return '';
         } else {
             return parent::col_checkbox($tablerow);
@@ -230,7 +239,9 @@ class quiz_first_or_all_responses_table extends quiz_last_responses_table {
      * @return string   What to put in the cell for this column, for this row data.
      */
     public function col_email($tablerow) {
-        if ($tablerow->try != 1) {
+        // Cell value for email column should be displayed only once, for user's first try or for users with no attempts/(tries).
+        // It is not to be repeated for subsequent tries.
+    	if ($tablerow->try > 1) {
             return '';
         } else {
             return $tablerow->email;
@@ -244,16 +255,21 @@ class quiz_first_or_all_responses_table extends quiz_last_responses_table {
      * @return string   What to put in the cell for this column, for this row data.
      */
     public function col_sumgrades($tablerow) {
-        if (!$tablerow->lasttryforallparts) {
+    	if ($tablerow->try == 0) {
+    	    // If user has not attempted the quiz, set this cell value to '-'.
+    		return '-';
+    	} elseif (!$tablerow->lasttryforallparts) {
             return '';
         } else {
             return parent::col_sumgrades($tablerow);
         }
     }
 
-
     public function col_state($tablerow) {
-        if (!$tablerow->lasttryforallparts) {
+    	if ($tablerow->try == 0) {
+    	    // If user has not attempted the quiz, set this cell value to '-'.
+    		return '-';
+    	} elseif (!$tablerow->lasttryforallparts) {
             return '';
         } else {
             return parent::col_state($tablerow);

@@ -15,16 +15,19 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information
+ * Version info
+ *
+ * This file contains version information about report_mergefiles
  *
  * @package    report_mergefiles
- * @copyright
+ * @copyright  2017 IITBombay
+ * @author     Kashmira Nagwekar
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2017052800;     // The current module version (Date: YYYYMMDDXX)
-$plugin->requires  = 2016112900;    // Requires this Moodle version
+$plugin->requires  = 2017042100;     // Requires this Moodle version
 $plugin->component = 'report_mergefiles'; // Full name of the plugin (used for diagnostics)
 
